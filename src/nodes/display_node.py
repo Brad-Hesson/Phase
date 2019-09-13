@@ -4,10 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import zmq
 
-from src.com import MFLIMessage
+from src.com import MFLIMessage, SUB_ADDR
 
 default_gain = 83.7
-port = 5556
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
@@ -21,8 +20,8 @@ fig.show()
 
 context = zmq.Context()
 socket = context.socket(zmq.SUB)
-socket.connect("tcp://localhost:%s" % str(port))
-socket.setsockopt(zmq.SUBSCRIBE, str(port))
+socket.connect(SUB_ADDR)
+socket.setsockopt(zmq.SUBSCRIBE, 'mfli_node')
 
 gain_buffer = [default_gain]
 gain_buffer_length = 5000

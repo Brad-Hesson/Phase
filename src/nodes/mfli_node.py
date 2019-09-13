@@ -1,14 +1,13 @@
 import numpy as np
 import zmq
 
-from src.com import MFLIMessage
+from src.com import MFLIMessage, PUB_ADDR
 from src.mfli import apply_settings, create_api_ref
 
 pkv = 7.0
 window = 2000
 filter_freq = 100
 filter_order = 8
-port = 5556
 
 daq = create_api_ref()
 apply_settings(pkv, filter_freq, filter_order)
@@ -27,7 +26,7 @@ msg.clock_base = clock_base
 
 context = zmq.Context()
 socket = context.socket(zmq.PUB)
-socket.bind("tcp://*:%s" % str(port))
+socket.connect(PUB_ADDR)
 
 print('Sending Data')
 RUN = True
@@ -43,4 +42,4 @@ while RUN:
     msg.data_high_gain = close
     msg.data_low_gain = wide
 
-    socket.send("%s %s" % (str(port), msg.encode()))
+    socket.send("%s %s" % ('mfli_node', msg.encode()))

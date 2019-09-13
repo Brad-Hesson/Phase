@@ -4,15 +4,14 @@ import time
 import h5py
 import zmq
 
-from src.com import MFLIMessage
+from src.com import MFLIMessage, SUB_ADDR
 
 file_name = 'data' + '_%.0f.hdf5' % time.time()
-port = 5556
 
 context = zmq.Context()
 socket = context.socket(zmq.SUB)
-socket.connect("tcp://localhost:%s" % str(port))
-socket.setsockopt(zmq.SUBSCRIBE, str(port))
+socket.connect(SUB_ADDR)
+socket.setsockopt(zmq.SUBSCRIBE, 'mfli_node')
 msg_first = MFLIMessage(socket.recv().split(' ', 1)[1])
 
 high_gain_start = msg_first.data_high_gain[0, 0].real

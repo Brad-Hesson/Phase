@@ -1,6 +1,6 @@
 import zmq
 
-from src.com import SUB_ADDR, PUB_ADDR
+from src.com import PUBLISHER_PORT, SUBSCRIBER_PORT
 
 
 def main():
@@ -8,13 +8,13 @@ def main():
         context = zmq.Context(1)
         # Socket facing clients
         frontend = context.socket(zmq.SUB)
-        frontend.bind(PUB_ADDR)
+        frontend.bind("tcp://*:%s" % PUBLISHER_PORT)
 
         frontend.setsockopt(zmq.SUBSCRIBE, "")
 
         # Socket facing services
         backend = context.socket(zmq.PUB)
-        backend.bind(SUB_ADDR)
+        backend.bind("tcp://*:%s" % SUBSCRIBER_PORT)
 
         zmq.device(zmq.FORWARDER, frontend, backend)
     except Exception, e:

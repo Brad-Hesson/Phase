@@ -12,7 +12,8 @@ port = 5556
 context = zmq.Context()
 socket = context.socket(zmq.SUB)
 socket.connect("tcp://localhost:%s" % str(port))
-msg_first = MFLIMessage(socket.recv_string())
+socket.setsockopt(zmq.SUBSCRIBE, str(port))
+msg_first = MFLIMessage(socket.recv().split(' ', 1)[1])
 
 high_gain_start = msg_first.data_high_gain[0, 0].real
 low_gain_start = msg_first.data_low_gain[0, 0].real
@@ -36,7 +37,7 @@ while True:
         f['wide'].resize(len(f['wide']) + len(wide), 0)
         f['wide'][-len(wide):] = wide
 
-    msg = MFLIMessage(socket.recv_string())
+    msg = MFLIMessage(socket.recv().split(' ', 1)[1])
 
     close = msg.data_high_gain
     wide = msg.data_low_gain

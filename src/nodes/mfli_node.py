@@ -29,6 +29,7 @@ context = zmq.Context()
 socket = context.socket(zmq.PUB)
 socket.bind("tcp://*:%s" % str(port))
 
+print('Sending Data')
 RUN = True
 while RUN:
     data = daq.poll(0.1, 500, 7)['dev3934']['demods']
@@ -42,4 +43,4 @@ while RUN:
     msg.data_high_gain = close
     msg.data_low_gain = wide
 
-    socket.send(msg.encode())
+    socket.send("%s %s" % (str(port), msg.encode()))

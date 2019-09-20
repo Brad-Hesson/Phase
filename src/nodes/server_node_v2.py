@@ -2,7 +2,7 @@ import socket
 import struct
 
 message = 'test'
-multicast_group = ('224.3.29.71', 10000)
+multicast_group = ('224.0.0.120', 10000)
 
 def main():
 

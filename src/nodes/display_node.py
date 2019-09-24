@@ -29,8 +29,15 @@ def main():
     gain_buffer_length = 5000
     while not kill:
         try:
-            close = Message(sub_high_gain.read()[-1]).data
-            wide = Message(sub_low_gain.read()[-1]).data
+            recv = []
+            while len(recv) == 0:
+                recv = sub_high_gain.read()
+            close = Message(recv[-1]).data
+
+            recv = []
+            while len(recv) == 0:
+                recv = sub_low_gain.read()
+            wide = Message(recv[-1]).data
 
             for c, w in zip(close[:, 1], wide[:, 1]):
                 if abs(c) < 6 and w != 0:

@@ -7,7 +7,7 @@ import time
 import zmq
 
 ping_rate = 0.5
-multicast_group = ('224.0.0.122', 5555)
+multicast_group = ('224.0.0.1', 5555)
 
 
 class Node(object):

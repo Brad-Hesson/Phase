@@ -10,13 +10,25 @@ default_gain = 83.7
 
 def main():
     fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.grid()
-    lc = ax.plot([])[0]
-    ax.set_aspect(1)
-    lw = ax.plot([])[0]
+    ax_polar = fig.add_subplot(121)
+    ax_polar.grid()
+    line_polar_close = ax_polar.plot([])[0]
+    ax_polar.set_aspect(1)
+    line_polar_wide = ax_polar.plot([])[0]
     radius = 6 / default_gain / default_gain * 10e6
-    ax.plot(radius * np.cos(np.linspace(0, 2*np.pi)), radius * np.sin(np.linspace(0, 2*np.pi)))
+    ax_polar.plot(radius * np.cos(np.linspace(0, 2*np.pi)), radius * np.sin(np.linspace(0, 2*np.pi)))
+
+    ax_real = fig.add_subplot(222, title='Real')
+    line_real_close = ax_real.plot([])[0]
+    line_real_wide = ax_real.plot([])[0]
+
+    ax_imag = fig.add_subplot(224, sharex=ax_real, title='Imaginary')
+    line_imag_close = ax_imag.plot([])[0]
+    line_imag_wide = ax_imag.plot([])[0]
+    ax_real.set_xlim(-0.5, 0)
+    ax_real.set_ylim(-9000, 9000)
+    ax_imag.set_ylim(-9000, 9000)
+
     fig.show()
 
     node = Node('display')
@@ -27,6 +39,8 @@ def main():
 
     gain_buffer = [default_gain]
     gain_buffer_length = 5000
+    close_window = np.zeros((1000, 2), dtype=np.complex)
+    wide_window = np.zeros((1000, 2), dtype=np.complex)
     while not kill:
         try:
             recv = []
@@ -49,9 +63,19 @@ def main():
             close[:, 1] /= (gain * gain)
             wide[:, 1] /= gain
 
-            lc.set_data(close[:, 1].real * 10e6, close[:, 1].imag * 10e6)
-            lw.set_linestyle('None' if abs(close[-1, 1]) < abs(6 / gain / gain) else '-')
-            lw.set_data(wide[:, 1].real * 10e6, wide[:, 1].imag * 10e6)
+            close_window[1:] = close_window[:-1]
+            close_window[0] = close[-1]
+            wide_window[1:] = wide_window[:-1]
+            wide_window[0] = wide[-1]
+
+            line_polar_close.set_data(close[:, 1].real * 10e6, close[:, 1].imag * 10e6)
+            line_polar_wide.set_linestyle('None' if abs(close[-1, 1]) < abs(6 / gain / gain) else '-')
+            line_polar_wide.set_data(wide[:, 1].real * 10e6, wide[:, 1].imag * 10e6)
+            line_real_close.set_data((close_window[:, 0].real - close_window[0, 0]) / 60., close_window[:, 1].real * 10e6)
+            line_imag_close.set_data((close_window[:, 0].real - close_window[0, 0]) / 60., close_window[:, 1].imag * 10e6)
+            line_real_wide.set_data((wide_window[:, 0].real - wide_window[0, 0]) / 60., wide_window[:, 1].real * 10e6)
+            line_imag_wide.set_data((wide_window[:, 0].real - wide_window[0, 0]) / 60., wide_window[:, 1].imag * 10e6)
+
             fig.canvas.draw()
             fig.canvas.flush_events()
         except TclError:

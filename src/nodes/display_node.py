@@ -2,9 +2,8 @@ from _tkinter import TclError
 
 import matplotlib.pyplot as plt
 import numpy as np
-import zmq
 
-from src.com import MFLIMessage, SUB_ADDR
+from src.com import Message, Node
 
 default_gain = 83.7
 
@@ -20,20 +19,18 @@ def main():
     ax.plot(radius * np.cos(np.linspace(0, 2*np.pi)), radius * np.sin(np.linspace(0, 2*np.pi)))
     fig.show()
 
-    context = zmq.Context()
-    socket = context.socket(zmq.SUB)
-    socket.connect(SUB_ADDR)
-    socket.setsockopt(zmq.SUBSCRIBE, 'mfli_node')
+    node = Node('display')
+    kill = node.kill_flag()
+    sub_high_gain = node.Subscriber('mfli/high_gain')
+    sub_low_gain = node.Subscriber('mfli/low_gain')
+    node.register_node()
 
     gain_buffer = [default_gain]
     gain_buffer_length = 5000
-    run = True
-    while run:
+    while not kill:
         try:
-            msg = MFLIMessage(socket.recv().split(' ', 1)[1])
-
-            close = msg.data_high_gain
-            wide = msg.data_low_gain
+            close = Message(sub_high_gain.read()[-1]).data
+            wide = Message(sub_low_gain.read()[-1]).data
 
             for c, w in zip(close[:, 1], wide[:, 1]):
                 if abs(c) < 6 and w != 0:
@@ -51,7 +48,7 @@ def main():
             fig.canvas.draw()
             fig.canvas.flush_events()
         except TclError:
-            run = False
+            kill = True
 
 
 if __name__ == '__main__':

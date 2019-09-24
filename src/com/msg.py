@@ -31,6 +31,7 @@ class CustomDecoder(json.JSONDecoder):
 
 class Message(object):
     def __init__(self, serialized=None):
+        self.data = -1
         self.decode(serialized) if serialized is not None else None
 
     def encode(self):
@@ -41,3 +42,9 @@ class Message(object):
         d = json.loads(zlib.decompress(serialized) if compress else serialized, cls=CustomDecoder)
         for attr in self.__dict__:
             self.__setattr__(attr, d[attr]) if attr in d else None
+
+    def __str__(self):
+        return self.encode()
+
+    def __repr__(self):
+        return self.encode()

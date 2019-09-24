@@ -11,7 +11,7 @@ node = Node('recorder')
 kill = node.kill_flag()
 sub_high_gain = node.Subscriber('mfli/high_gain')
 sub_low_gain = node.Subscriber('mfli/low_gain')
-sub_drive_voltage = node.Subscriber('mfli/drive_voltage')
+sub_drive_voltage = node.Subscriber('mfli/peak_voltage')
 node.register_node()
 
 recv = []

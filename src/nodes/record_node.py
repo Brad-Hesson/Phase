@@ -12,43 +12,74 @@ kill = node.kill_flag()
 sub_high_gain = node.Subscriber('mfli/high_gain')
 sub_low_gain = node.Subscriber('mfli/low_gain')
 sub_drive_voltage = node.Subscriber('mfli/peak_voltage')
+sub_temp = node.Subscriber('watlow/temp')
+sub_setpoint = node.Subscriber('watlow/setpoint')
 node.register_node()
 
 recv = []
 while len(recv) == 0:
     recv = sub_high_gain.read()
-close = Message(recv[-1]).data
+close = Message(recv[-1]).data[-1]
 
 recv = []
 while len(recv) == 0:
     recv = sub_low_gain.read()
-wide = Message(recv[-1]).data
+wide = Message(recv[-1]).data[-1]
 
 recv = []
 while len(recv) == 0:
     recv = sub_drive_voltage.read()
 drive_voltage = Message(recv[-1]).data
 
+recv = []
+while len(recv) == 0:
+    recv = sub_temp.read()
+temp = Message(recv[-1]).data
+
+recv = []
+while len(recv) == 0:
+    recv = sub_setpoint.read()
+setpoint = Message(recv[-1]).data
+
 if not os.path.isfile(file_name):
     with h5py.File(file_name, 'a') as f:
-        f.create_dataset('close', data=close, compression='gzip', maxshape=(None, 2))
-        f.create_dataset('wide', data=wide, compression='gzip', maxshape=(None, 2))
+        f.create_dataset('close', data=[close], compression='gzip', maxshape=(None, 2))
+        f.create_dataset('wide', data=[wide], compression='gzip', maxshape=(None, 2))
+        f.create_dataset('temp', data=[temp], compression='gzip', maxshape=(None, 2))
+        f.create_dataset('setpoint', data=[setpoint], compression='gzip', maxshape=(None, 2))
         f.create_dataset('drive_voltage', data=drive_voltage)
 
+print('recording')
 while not kill:
     recv = []
     while len(recv) == 0:
         recv = sub_high_gain.read()
-    close = Message(recv[-1]).data
+    close = Message(recv[-1]).data[-1]
 
     recv = []
     while len(recv) == 0:
         recv = sub_low_gain.read()
-    wide = Message(recv[-1]).data
+    wide = Message(recv[-1]).data[-1]
+
+    recv = []
+    while len(recv) == 0:
+        recv = sub_temp.read()
+    temp = Message(recv[-1]).data
+
+    recv = []
+    while len(recv) == 0:
+        recv = sub_setpoint.read()
+    setpoint = Message(recv[-1]).data
 
     with h5py.File(file_name, 'a') as f:
-        f['close'].resize(len(f['close']) + len(close), 0)
-        f['close'][-len(close):] = close
+        f['close'].resize(len(f['close']) + 1, 0)
+        f['close'][-1] = close
 
-        f['wide'].resize(len(f['wide']) + len(wide), 0)
-        f['wide'][-len(wide):] = wide
+        f['wide'].resize(len(f['wide']) + 1, 0)
+        f['wide'][-1] = wide
+
+        f['temp'].resize(len(f['temp']) + 1, 0)
+        f['temp'][-1] = temp
+
+        f['setpoint'].resize(len(f['setpoint']) + 1, 0)
+        f['setpoint'][-1] = setpoint

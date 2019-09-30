@@ -4,6 +4,7 @@ from src.com import Message, Node
 from src.mfli import apply_settings, create_api_ref
 
 pkv = 7.0
+freq = 284000
 window = 2000
 filter_freq = 100
 filter_order = 8
@@ -11,7 +12,7 @@ filter_order = 8
 
 def main():
     daq = create_api_ref()
-    apply_settings(pkv, filter_freq, filter_order)
+    apply_settings(pkv, freq, filter_freq, filter_order)
     daq.subscribe('/dev3934/demods/0/sample')
     daq.subscribe('/dev3934/demods/1/sample')
     clock_base = daq.getDouble('/dev3934/clockbase')

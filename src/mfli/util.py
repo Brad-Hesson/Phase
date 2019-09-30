@@ -54,7 +54,7 @@ def set_pkpk(daq, pkv):
     return np.std(wave)*2**1.5, output / actual
 
 
-def apply_settings(pkv=7, filter_freq=1000, filter_order=8):
+def apply_settings(pkv=7, freq=100000, filter_freq=1000, filter_order=8):
     daq = create_api_ref()
     # Signal Input 1
     daq.setInt('/dev3934/demods/0/adcselect', 0)
@@ -85,7 +85,7 @@ def apply_settings(pkv=7, filter_freq=1000, filter_order=8):
     daq.setDouble('/dev3934/demods/1/rate', 1674)
 
     # Reference
-    daq.setDouble('/dev3934/oscs/0/freq', 100000)
+    daq.setDouble('/dev3934/oscs/0/freq', freq)
     daq.setDouble('/dev3934/demods/1/harmonic', 1)
     daq.setDouble('/dev3934/demods/1/phaseshift', 0)
 

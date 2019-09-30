@@ -38,10 +38,11 @@ fig.show()
 fig.canvas.draw()
 fig.canvas.flush_events()
 
-raw_input()
-
 const = np.complex(1, slope)
 const = abs(const) / const
+print(np.arctan(const.imag / const.real) / np.pi * 180.)
+
+raw_input()
 
 msg = Message()
 msg.data = const
@@ -52,5 +53,6 @@ ax.plot((data[:, 1] * const).real, (data[:, 1] * const).imag)
 
 fig.canvas.draw()
 fig.canvas.flush_events()
+
 
 raw_input()

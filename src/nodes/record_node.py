@@ -1,11 +1,10 @@
 import os
-import time
 
 import h5py
 
 from src.com import Message, Node
 
-file_name = 'data' + '_%.0f.hdf5' % time.time()
+file_name = 'SN1_slow_ramp_2.hdf5'
 
 node = Node('recorder')
 kill = node.kill_flag()

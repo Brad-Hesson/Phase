@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--file', '-f', default='data_1569888511.hdf5')
+parser.add_argument('--file', '-f', default='SN1_slow_ramp.hdf5')
 rv = parser.parse_args()
 
 with h5py.File(rv.file, 'r') as f:
@@ -24,10 +24,10 @@ setpoint_history[:, 0] -= setpoint_history[0, 0]
 
 fig = plt.figure()
 ax = fig.add_subplot(211)
-ax.plot(wide_history[:, 0].real / 60., np.abs(wide_history[:, 1] - wide_history[0, 1]))
+ax.plot(wide_history[:, 0].real / 60. / 60., np.abs(wide_history[:, 1] - wide_history[0, 1]))
 ax2 = fig.add_subplot(212, sharex=ax)
-ax2.plot(setpoint_history[:, 0] / 60., setpoint_history[:, 1])
-ax2.plot(temp_history[:, 0] / 60., temp_history[:, 1])
+ax2.plot(setpoint_history[:, 0] / 60. / 60., setpoint_history[:, 1])
+ax2.plot(temp_history[:, 0] / 60. / 60., temp_history[:, 1])
 
 fig.show()
 

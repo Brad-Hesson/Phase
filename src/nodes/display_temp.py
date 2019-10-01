@@ -34,13 +34,20 @@ def main():
     power_history = np.zeros((0, 2))
     set_history = np.zeros((0, 2))
 
+    ramp_x = lambda t: [t, 1, t, 1]
+    ramp_xf = lambda t: [t, t, 25, 25]
+    x = [0] + ramp_x(6)
+    x = np.cumsum(x)
+    xf = [25] + ramp_xf(120)
+    f = lambda t: np.interp(t / 60. / 60., x, xf)
+
     msg = Message()
     start = time.time()
     while not kill_flag:
         try:
             if enable_control:
                 now = time.time() - start
-                msg.data = max(120 - abs(((now + 4500) * 120/(6 * 60 * 60)) - 120), 25)
+                msg.data = f(now)
                 pub_setpoint.publish(msg)
 
             recv = []

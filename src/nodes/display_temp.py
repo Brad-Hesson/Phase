@@ -40,7 +40,7 @@ def main():
         try:
             if enable_control:
                 now = time.time() - start
-                msg.data = 100 - abs((now * 100/(10*60)) - 100)
+                msg.data = max(120 - abs((now * 120/(6 * 60 * 60)) - 120), 25)
                 pub_setpoint.publish(msg)
 
             recv = []

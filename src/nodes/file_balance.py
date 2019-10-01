@@ -7,7 +7,7 @@ import numpy as np
 from matplotlib.widgets import Slider
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--file', '-f', default='data_1569436170.hdf5')
+parser.add_argument('--file', '-f', default='data_1569887045.hdf5')
 rv = parser.parse_args()
 
 with h5py.File(rv.file, 'r') as f:

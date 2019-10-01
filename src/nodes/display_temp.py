@@ -6,8 +6,8 @@ import numpy as np
 
 from src.com import Node, Message
 
-enable_control = False
-
+enable_control = True
+max_length = 500000
 
 def main():
     node = Node('temp_display')
@@ -40,7 +40,7 @@ def main():
         try:
             if enable_control:
                 now = time.time() - start
-                msg.data = max(120 - abs((now * 120/(6 * 60 * 60)) - 120), 25)
+                msg.data = max(120 - abs(((now + 4500) * 120/(6 * 60 * 60)) - 120), 25)
                 pub_setpoint.publish(msg)
 
             recv = []
@@ -59,6 +59,10 @@ def main():
             temp_history = np.concatenate((temp_history, [temp]))
             power_history = np.concatenate((power_history, [power]))
             set_history = np.concatenate((set_history, [set_]))
+
+            temp_history = temp_history[1:] if len(temp_history) > max_length else temp_history
+            power_history = power_history[1:] if len(power_history) > max_length else power_history
+            set_history = set_history[1:] if len(set_history) > max_length else set_history
 
             line_temp.set_data((temp_history[:, 0] - temp_history[-1, 0]) / 60.0, temp_history[:, 1])
             line_set.set_data((set_history[:, 0] - set_history[-1, 0]) / 60.0, set_history[:, 1])

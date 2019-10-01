@@ -7,6 +7,7 @@ from matplotlib.widgets import Slider
 from src.com import Message, Node
 
 default_gain = 49.5
+max_length = 500000
 
 
 def main():
@@ -21,7 +22,7 @@ def main():
     radius = 6 / default_gain / default_gain * 1e6
     ax_polar.plot(radius * np.cos(np.linspace(0, 2*np.pi)), radius * np.sin(np.linspace(0, 2*np.pi)))
 
-    slider = Slider(fig.add_axes([0.125, 0.1, 0.35, 0.03]), 'History', 1, 100000, 1000, valstep=1)
+    slider = Slider(fig.add_axes([0.125, 0.1, 0.35, 0.03]), 'History', 1, 1000, 10, valstep=1)
 
     ax_real = fig.add_subplot(222, title='Resistive')
     ax_real.xaxis.set_visible(False)
@@ -55,12 +56,12 @@ def main():
             recv = []
             while len(recv) == 0:
                 recv = sub_high_gain.read()
-            close = Message(recv[-1]).data
+            close = Message(recv[-1]).data[-1]
 
             recv = []
             while len(recv) == 0:
                 recv = sub_low_gain.read()
-            wide = Message(recv[-1]).data
+            wide = Message(recv[-1]).data[-1]
 
             #for c, w in zip(close[:, 1], wide[:, 1]):
             #    if abs(c) < 6 and w != 0:
@@ -69,11 +70,14 @@ def main():
 
             gain = default_gain
 
-            close[:, 1] /= (gain * gain * (0.977795681556585-0.20956050469803128j))
-            wide[:, 1] /= gain
+            close[1] /= (gain * gain * (0.977795681556585-0.20956050469803128j))
+            wide[1] /= gain
 
-            close_history = np.concatenate((close_history, close), axis=0)
-            wide_history = np.concatenate((wide_history, wide), axis=0)
+            close_history = np.concatenate((close_history, [close]), axis=0)
+            wide_history = np.concatenate((wide_history, [wide]), axis=0)
+
+            close_history = close_history[1:] if len(close_history) > max_length else close_history
+            wide_history = wide_history[1:] if len(wide_history) > max_length else wide_history
 
             history = int(slider.val)
             line_polar_close.set_data(close_history[-history:, 1].real * 1e6, close_history[-history:, 1].imag * 1e6)

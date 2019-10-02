@@ -4,6 +4,7 @@ import h5py
 
 from src.com import Message, Node
 
+directory = '../../data/'
 file_name = 'SN1_slow_ramp_2.hdf5'
 
 node = Node('recorder')
@@ -40,8 +41,8 @@ while len(recv) == 0:
     recv = sub_setpoint.read()
 setpoint = Message(recv[-1]).data
 
-if not os.path.isfile(file_name):
-    with h5py.File(file_name, 'a') as f:
+if not os.path.isfile(directory + file_name):
+    with h5py.File(directory + file_name, 'a') as f:
         f.create_dataset('close', data=[close], compression='gzip', maxshape=(None, 2))
         f.create_dataset('wide', data=[wide], compression='gzip', maxshape=(None, 2))
         f.create_dataset('temp', data=[temp], compression='gzip', maxshape=(None, 2))
@@ -70,7 +71,7 @@ while not kill:
         recv = sub_setpoint.read()
     setpoint = Message(recv[-1]).data
 
-    with h5py.File(file_name, 'a') as f:
+    with h5py.File(directory + file_name, 'a') as f:
         f['close'].resize(len(f['close']) + 1, 0)
         f['close'][-1] = close
 

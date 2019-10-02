@@ -5,15 +5,17 @@ import h5py
 import matplotlib.pyplot as plt
 import numpy as np
 
-filename = 'SN1_slow_ramp.hdf5'
+directory = '../../data/'
+filename = 'data_1569442217.hdf5'
+
 default_gain = 49.5
 g_rot = (0.977795681556585-0.20956050469803128j)
 
 
 def main(rv):
     with h5py.File(rv.file, 'r') as f:
-        close_history = np.array(f['close'][::500])
-        wide_history = np.array(f['wide'][::500])
+        close_history = np.array(f['close'][::50000])
+        wide_history = np.array(f['wide'][::50000])
 
     close_history[:, 1] *= 1e6 / default_gain ** 2 / g_rot
     close_history[:, 0] -= close_history[0, 0]
@@ -22,6 +24,7 @@ def main(rv):
 
     index_ratio = len(wide_history) / wide_history[-1, 0].real * 60
 
+    plt.style.use('ggplot')
     fig = plt.figure()
 
     ax_polar = fig.add_subplot(121)
@@ -31,7 +34,7 @@ def main(rv):
     line_polar_close = ax_polar.plot([])[0]
     ax_polar.set_aspect(1)
     line_polar_wide = ax_polar.plot([])[0]
-    radius = 6 / default_gain / default_gain * 1e6
+    radius = 3.3 / default_gain / default_gain * 1e6
     ax_polar.plot(radius * np.cos(np.linspace(0, 2*np.pi)), radius * np.sin(np.linspace(0, 2*np.pi)))
 
     ax_real = fig.add_subplot(222, title='Resistive')
@@ -65,6 +68,6 @@ def main(rv):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--file', '-f', default=filename)
+    parser.add_argument('--file', '-f', default=directory + filename)
     rv = parser.parse_args()
     main(rv)

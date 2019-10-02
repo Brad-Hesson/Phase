@@ -12,6 +12,7 @@ kill = node.kill_flag()
 sub_high_gain = node.Subscriber('mfli/high_gain')
 sub_low_gain = node.Subscriber('mfli/low_gain')
 sub_drive_voltage = node.Subscriber('mfli/peak_voltage')
+sub_freq = node.Subscriber('mfli/freq')
 sub_temp = node.Subscriber('watlow/temp')
 sub_setpoint = node.Subscriber('watlow/setpoint')
 node.register_node()
@@ -33,6 +34,11 @@ drive_voltage = Message(recv[-1]).data
 
 recv = []
 while len(recv) == 0:
+    recv = sub_freq.read()
+frequency = Message(recv[-1]).data
+
+recv = []
+while len(recv) == 0:
     recv = sub_temp.read()
 temp = Message(recv[-1]).data
 
@@ -48,6 +54,7 @@ if not os.path.isfile(directory + file_name):
         f.create_dataset('temp', data=[temp], compression='gzip', maxshape=(None, 2))
         f.create_dataset('setpoint', data=[setpoint], compression='gzip', maxshape=(None, 2))
         f.create_dataset('drive_voltage', data=drive_voltage)
+        f.create_dataset('frequency', data=frequency)
 
 print('recording')
 while not kill:

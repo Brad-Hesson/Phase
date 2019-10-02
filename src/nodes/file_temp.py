@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 directory = '../../data/'
-filename = 'SN1_slow_ramp_2.hdf5'
+filename = 'SN1_slow_ramp.hdf5'
 
 start = 0
 end = -1

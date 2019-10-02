@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 directory = '../../data/'
-filename = 'data_1569442217.hdf5'
+filename = 'data_1569437837.hdf5'
 
 default_gain = 49.5
 g_rot = (0.977795681556585-0.20956050469803128j)

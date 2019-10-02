@@ -70,7 +70,7 @@ class Node(object):
                     break
                 self.__parse_message(data, address)
             for name, data in self.__nodes.items():
-                if time.time() - data[0] > ping_rate * 5:
+                if time.time() - data[0] > ping_rate * 10:
                     del self.__nodes[name]
             self.__tick()
             for subscriber in self.__subscribers:

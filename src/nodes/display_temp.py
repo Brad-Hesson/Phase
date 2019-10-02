@@ -1,4 +1,3 @@
-import time
 from _tkinter import TclError
 
 import matplotlib.pyplot as plt
@@ -6,15 +5,14 @@ import numpy as np
 
 from src.com import Node, Message
 
-enable_control = True
 max_length = 500000
+
 
 def main():
     node = Node('temp_display')
     sub_temp = node.Subscriber('watlow/temp')
     sub_power = node.Subscriber('watlow/power')
     sub_set = node.Subscriber('watlow/setpoint')
-    pub_setpoint = node.Publisher('watlow/set_setpoint')
     kill_flag = node.kill_flag()
     node.register_node()
 
@@ -34,22 +32,8 @@ def main():
     power_history = np.zeros((0, 2))
     set_history = np.zeros((0, 2))
 
-    ramp_x = lambda t: [t, 1, t, 1]
-    ramp_xf = lambda t: [t, t, 25, 25]
-    x = [0] + ramp_x(6)
-    x = np.cumsum(x)
-    xf = [25] + ramp_xf(120)
-    f = lambda t: np.interp(t / 60. / 60., x, xf)
-
-    msg = Message()
-    start = time.time()
     while not kill_flag:
         try:
-            if enable_control:
-                now = time.time() - start
-                msg.data = f(now)
-                pub_setpoint.publish(msg)
-
             recv = []
             while len(recv) == 0:
                 recv = sub_temp.read()

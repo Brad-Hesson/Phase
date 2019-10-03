@@ -7,30 +7,55 @@ from src.com import Node, Message
 
 max_length = 500000
 
+axis_font = 15
+title_font = 18
+tick_font = 12
+
 
 def main():
     node = Node('temp_display')
+    sub_wide = node.Subscriber('mfli/high_gain')
     sub_temp = node.Subscriber('watlow/temp')
-    sub_power = node.Subscriber('watlow/power')
     sub_set = node.Subscriber('watlow/setpoint')
     kill_flag = node.kill_flag()
     node.register_node()
 
-    fig = plt.figure()
-    ax_t = fig.add_subplot(211)
-    ax_t.set_ylim(0, 130)
-    ax_t.set_xlim(-1, 0)
-    line_temp = ax_t.plot([])[0]
-    line_set = ax_t.plot([])[0]
-    ax_p = fig.add_subplot(212, sharex=ax_t)
-    ax_p.set_ylim(0, 100)
-    ax_p.set_xlim(-1, 0)
-    line_power = ax_p.plot([])[0]
-    fig.show()
-
     temp_history = np.zeros((0, 2))
-    power_history = np.zeros((0, 2))
-    set_history = np.zeros((0, 2))
+    setpoint_history = np.zeros((0, 2))
+    wide_history = np.zeros((0, 2))
+
+    plt.style.use('ggplot')
+    fig = plt.figure()
+    fig.suptitle('12 hour Temperature Cycle', fontsize=title_font)
+
+    ax_b = fig.add_subplot(222)
+    ax_b.set_title('Balance vs. Time', fontsize=title_font)
+    ax_b.set_ylabel('Imbalance (uV)', fontsize=axis_font)
+    ax_b.tick_params(labelsize=tick_font)
+    l_rbal = ax_b.plot([], label='Demod X')[0]
+    l_ibal = ax_b.plot([], label='Demod Y')[0]
+    ax_b.legend()
+
+    ax_t = fig.add_subplot(224, sharex=ax_b)
+    ax_t.set_title('Temperature vs. Time', fontsize=title_font)
+    ax_t.set_ylabel('Temperature (C)', fontsize=axis_font)
+    ax_t.set_xlabel('Time (h)', fontsize=axis_font)
+    ax_t.tick_params(labelsize=tick_font)
+    l_set = ax_t.plot([], 'g-', label='Setpoint')[0]
+    l_temp = ax_t.plot([], 'r-', label='Temperature')[0]
+    ax_t.legend()
+
+    ax_bt = fig.add_subplot(121)
+    ax_bt.set_title('Balance vs. Temperature', fontsize=title_font)
+    ax_bt.set_ylabel('Imbalance (uV)', fontsize=axis_font)
+    ax_bt.set_xlabel('Temperature (C)', fontsize=axis_font)
+    ax_bt.tick_params(labelsize=tick_font)
+    l_xdemod = ax_bt.plot([], label='Demod X')[0]
+    l_ydemod = ax_bt.plot([], label='Demod Y')[0]
+    ax_bt.annotate('', xy=(25, 0), arrowprops=dict(arrowstyle='->'))
+    ax_bt.legend()
+
+    fig.show()
 
     while not kill_flag:
         try:
@@ -40,24 +65,27 @@ def main():
             temp = Message(recv[-1]).data
             recv = []
             while len(recv) == 0:
-                recv = sub_power.read()
-            power = Message(recv[-1]).data
+                recv = sub_wide.read()
+            wide = Message(recv[-1]).data[-1]
             recv = []
             while len(recv) == 0:
                 recv = sub_set.read()
             set_ = Message(recv[-1]).data
 
             temp_history = np.concatenate((temp_history, [temp]))
-            power_history = np.concatenate((power_history, [power]))
-            set_history = np.concatenate((set_history, [set_]))
+            wide_history = np.concatenate((wide_history, [wide]))
+            setpoint_history = np.concatenate((setpoint_history, [set_]))
 
             temp_history = temp_history[1:] if len(temp_history) > max_length else temp_history
-            power_history = power_history[1:] if len(power_history) > max_length else power_history
-            set_history = set_history[1:] if len(set_history) > max_length else set_history
+            wide_history = wide_history[1:] if len(wide_history) > max_length else wide_history
+            setpoint_history = setpoint_history[1:] if len(setpoint_history) > max_length else setpoint_history
 
-            line_temp.set_data((temp_history[:, 0] - temp_history[-1, 0]) / 60.0, temp_history[:, 1])
-            line_set.set_data((set_history[:, 0] - set_history[-1, 0]) / 60.0, set_history[:, 1])
-            line_power.set_data((power_history[:, 0] - power_history[-1, 0]) / 60.0, power_history[:, 1])
+            l_rbal.set_data((wide_history[:, 0] - wide_history[-1, 0]).real / 60. / 60., (wide_history[:, 1] - wide_history[0, 1]).real)
+            l_ibal.set_data((wide_history[:, 0] - wide_history[-1, 0]).real / 60. / 60., (wide_history[:, 1] - wide_history[0, 1]).imag)
+            l_set.set_data((setpoint_history[:, 0] - setpoint_history[-1, 0]) / 60. / 60., setpoint_history[:, 1])
+            l_temp.set_data((temp_history[:, 0] - temp_history[-1, 0]) / 60. / 60., temp_history[:, 1])
+            l_xdemod.set_data(temp_history[:, 1], wide_history[:, 1].real - wide_history[0, 1].real)
+            l_ydemod.set_data(temp_history[:, 1], wide_history[:, 1].imag - wide_history[0, 1].imag)
 
             fig.canvas.draw()
             fig.canvas.flush_events()

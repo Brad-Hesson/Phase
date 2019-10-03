@@ -14,7 +14,7 @@ tick_font = 12
 
 def main():
     node = Node('temp_display')
-    sub_wide = node.Subscriber('mfli/high_gain')
+    sub_wide = node.Subscriber('mfli/low_gain')
     sub_temp = node.Subscriber('watlow/temp')
     sub_set = node.Subscriber('watlow/setpoint')
     kill_flag = node.kill_flag()

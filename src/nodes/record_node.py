@@ -1,92 +1,84 @@
 import os
-
 import h5py
-
 from src.com import Message, Node
 
 directory = '../../data/'
-file_name = 'SN1_med_ramp.hdf5'
+file_name = 'SN12_temp_ramp_test.hdf5'
 
-node = Node('recorder')
-kill = node.kill_flag()
-sub_high_gain = node.Subscriber('mfli/high_gain')
-sub_low_gain = node.Subscriber('mfli/low_gain')
-sub_drive_voltage = node.Subscriber('mfli/peak_voltage')
-sub_freq = node.Subscriber('mfli/freq')
-sub_temp = node.Subscriber('watlow/temp')
-sub_setpoint = node.Subscriber('watlow/setpoint')
-node.register_node()
 
-recv = []
-while len(recv) == 0:
-    recv = sub_high_gain.read()
-close = Message(recv[-1]).data[-1]
+def main():
+    node = Node('recorder')
+    kill = node.kill_flag()
+    recv_high_gain = node.Receiver('mfli/high_gain')
+    recv_low_gain = node.Receiver('mfli/low_gain')
+    recv_drive_voltage = node.Receiver('mfli/peak_voltage')
+    recv_freq = node.Receiver('mfli/freq')
+    recv_temp = node.Receiver('watlow/temp')
+    recv_setpoint = node.Receiver('watlow/setpoint')
+    node.register_node()
 
-recv = []
-while len(recv) == 0:
-    recv = sub_low_gain.read()
-wide = Message(recv[-1]).data[-1]
+    recv = None
+    while recv is None:
+        recv = recv_high_gain.read()
+    close = Message(recv).data[-1]
 
-recv = []
-while len(recv) == 0:
-    recv = sub_drive_voltage.read()
-drive_voltage = Message(recv[-1]).data
+    recv = None
+    while recv is None:
+        recv = recv_low_gain.read()
+    wide = Message(recv).data[-1]
 
-recv = []
-while len(recv) == 0:
-    recv = sub_freq.read()
-frequency = Message(recv[-1]).data
+    recv = None
+    while recv is None:
+        recv = recv_drive_voltage.read()
+    drive_voltage = Message(recv).data
 
-recv = []
-while len(recv) == 0:
-    recv = sub_temp.read()
-temp = Message(recv[-1]).data
+    recv = None
+    while recv is None:
+        recv = recv_freq.read()
+    frequency = Message(recv).data
 
-recv = []
-while len(recv) == 0:
-    recv = sub_setpoint.read()
-setpoint = Message(recv[-1]).data
+    recv = None
+    while recv is None:
+        recv = recv_temp.read()
+    temp = Message(recv).data
 
-if not os.path.isfile(directory + file_name):
-    with h5py.File(directory + file_name, 'a') as f:
-        f.create_dataset('close', data=[close], compression='gzip', maxshape=(None, 2))
-        f.create_dataset('wide', data=[wide], compression='gzip', maxshape=(None, 2))
-        f.create_dataset('temp', data=[temp], compression='gzip', maxshape=(None, 2))
-        f.create_dataset('setpoint', data=[setpoint], compression='gzip', maxshape=(None, 2))
-        f.create_dataset('drive_voltage', data=drive_voltage)
-        f.create_dataset('frequency', data=frequency)
+    recv = None
+    while recv is None:
+        recv = recv_setpoint.read()
+    setpoint = Message(recv).data
 
-print('recording')
-while not kill:
-    recv = []
-    while len(recv) == 0:
-        recv = sub_high_gain.read()
-    close = Message(recv[-1]).data[-1]
+    assert not os.path.isfile(directory + file_name)
+    f = h5py.File(directory + file_name, 'a')
 
-    recv = []
-    while len(recv) == 0:
-        recv = sub_low_gain.read()
-    wide = Message(recv[-1]).data[-1]
+    f.create_dataset('close', data=[close], compression='gzip', maxshape=(None, 2))
+    f.create_dataset('wide', data=[wide], compression='gzip', maxshape=(None, 2))
+    f.create_dataset('temp', data=[temp], compression='gzip', maxshape=(None, 2))
+    f.create_dataset('setpoint', data=[setpoint], compression='gzip', maxshape=(None, 2))
+    f.create_dataset('drive_voltage', data=drive_voltage)
+    f.create_dataset('frequency', data=frequency)
 
-    recv = []
-    while len(recv) == 0:
-        recv = sub_temp.read()
-    temp = Message(recv[-1]).data
+    print('recording')
+    while not kill:
+        recv = recv_high_gain.read()
+        if recv is not None:
+            f['close'].resize(len(f['close']) + 1, 0)
+            f['close'][-1] = Message(recv).data[-1]
 
-    recv = []
-    while len(recv) == 0:
-        recv = sub_setpoint.read()
-    setpoint = Message(recv[-1]).data
+        recv = recv_low_gain.read()
+        if recv is not None:
+            f['wide'].resize(len(f['wide']) + 1, 0)
+            f['wide'][-1] = Message(recv).data[-1]
 
-    with h5py.File(directory + file_name, 'a') as f:
-        f['close'].resize(len(f['close']) + 1, 0)
-        f['close'][-1] = close
+        recv = recv_temp.read()
+        if recv is not None:
+            f['temp'].resize(len(f['temp']) + 1, 0)
+            f['temp'][-1] = Message(recv).data
 
-        f['wide'].resize(len(f['wide']) + 1, 0)
-        f['wide'][-1] = wide
+        recv = recv_setpoint.read()
+        if recv is not None:
+            f['setpoint'].resize(len(f['setpoint']) + 1, 0)
+            f['setpoint'][-1] = Message(recv).data
 
-        f['temp'].resize(len(f['temp']) + 1, 0)
-        f['temp'][-1] = temp
 
-        f['setpoint'].resize(len(f['setpoint']) + 1, 0)
-        f['setpoint'][-1] = setpoint
+if __name__ == '__main__':
+    main()

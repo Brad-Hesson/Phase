@@ -8,8 +8,8 @@ from src.com import Message, Node
 
 node = Node('calibration')
 kill = node.kill_flag()
-sub_data = node.Subscriber('mfli/low_gain')
-pub_calib = node.Publisher('mfli/calibration')
+recv_data = node.Receiver('mfli/low_gain')
+tran_calib = node.Transmitter('mfli/calibration')
 node.register_node()
 
 
@@ -24,9 +24,9 @@ thread.start()
 run = True
 data = np.zeros((0, 2), dtype=np.complex)
 while run:
-    for window in sub_data.read():
-        data = np.concatenate((data, Message(window).data), axis=0)
+    data = np.concatenate((data, Message(recv_data.read()).data), axis=0)
 
+recv_data.close()
 slope, intercept = linregress(data[:, 1].real, data[:, 1].imag)[0:2]
 x_data = np.array([min(data[:, 1].real), max(data[:, 1].real)])
 
@@ -46,7 +46,8 @@ raw_input()
 
 msg = Message()
 msg.data = const
-pub_calib.publish(msg)
+tran_calib.transmit(msg)
+tran_calib.close()
 
 ax.cla()
 ax.plot((data[:, 1] * const).real, (data[:, 1] * const).imag)

@@ -3,8 +3,6 @@ import zlib
 
 import numpy as np
 
-compress = True
-
 
 class CustomEncoder(json.JSONEncoder):
     def default(self, o):
@@ -30,21 +28,19 @@ class CustomDecoder(json.JSONDecoder):
 
 
 class Message(object):
+    compress = True
+
     def __init__(self, serialized=None):
-        self.data = -1
         self.decode(serialized) if serialized is not None else None
 
     def encode(self):
         d = json.dumps(self.__dict__, cls=CustomEncoder)
-        return zlib.compress(d, 1) if compress else d
+        return zlib.compress(d, 1) if self.compress else d
 
     def decode(self, serialized):
-        d = json.loads(zlib.decompress(serialized) if compress else serialized, cls=CustomDecoder)
-        for attr in self.__dict__:
-            self.__setattr__(attr, d[attr]) if attr in d else None
-
-    def __str__(self):
-        return self.encode()
+        d = json.loads(zlib.decompress(serialized) if self.compress else serialized, cls=CustomDecoder)
+        for attr in d:
+            self.__dict__[attr] = d[attr]
 
     def __repr__(self):
         return self.encode()

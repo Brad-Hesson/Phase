@@ -9,10 +9,10 @@ from src.com import Node, Message
 
 def main():
     node = Node('watlow')
-    pub_temp = node.Publisher('watlow/temp')
-    pub_power = node.Publisher('watlow/power')
-    pub_setpoint = node.Publisher('watlow/setpoint')
-    sub_set_setpoint = node.Subscriber('watlow/set_setpoint')
+    tran_temp = node.Transmitter('watlow/temp')
+    tran_power = node.Transmitter('watlow/power')
+    tran_setpoint = node.Transmitter('watlow/setpoint')
+    recv_set_setpoint = node.Receiver('watlow/set_setpoint')
     kill_flag = node.kill_flag()
     node.register_node()
     msg = Message()
@@ -28,7 +28,7 @@ def main():
 
     print('running')
     while not kill_flag:
-        recv = sub_set_setpoint.read()
+        recv = recv_set_setpoint.read_all()
         if recv is not None and len(recv) >= 1:
             instrument.write_float(2640, Message(recv[-1]).data)
         temp = instrument.read_float(402)
@@ -37,11 +37,11 @@ def main():
         millis = time.time()
 
         msg.data = np.array((millis, temp))
-        pub_temp.publish(msg)
+        tran_temp.transmit(msg)
         msg.data = np.array((millis, power))
-        pub_power.publish(msg)
+        tran_power.transmit(msg)
         msg.data = np.array((millis, set_point))
-        pub_setpoint.publish(msg)
+        tran_setpoint.transmit(msg)
 
 
 if __name__ == '__main__':

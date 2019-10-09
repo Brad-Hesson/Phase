@@ -1,13 +1,11 @@
 import time
-
 import numpy as np
-
 from src.com import Message, Node
 
 
 def main():
     node = Node('temperature_ramp')
-    pub_setpoint = node.Publisher('watlow/set_setpoint')
+    tran_setpoint = node.Transmitter('watlow/set_setpoint')
     kill_flag = node.kill_flag()
     node.register_node()
 
@@ -26,7 +24,8 @@ def main():
     while not kill_flag:
         now = time.time() - start
         msg.data = profile(now)
-        pub_setpoint.publish(msg)
+        tran_setpoint.transmit(msg)
+        time.sleep(1)
 
 
 if __name__ == '__main__':

@@ -1,5 +1,4 @@
 import numpy as np
-
 from src.com import Message, Node
 from src.mfli import apply_settings, create_api_ref
 
@@ -9,6 +8,7 @@ window = 2000
 filter_freq = 100
 filter_order = 8
 
+calibration = np.complex(1, 0)
 
 def main():
     daq = create_api_ref()
@@ -22,23 +22,20 @@ def main():
 
     node = Node('mfli')
     kill = node.kill_flag()
-    pub_high_gain = node.Publisher('mfli/high_gain')
-    pub_low_gain = node.Publisher('mfli/low_gain')
-    pub_drive_voltage = node.Publisher('mfli/peak_voltage')
-    pub_freq = node.Publisher('mfli/freq')
-    pub_filter_cutoff = node.Publisher('mfli/filter_cutoff')
-    pub_filter_order = node.Publisher('mfli/filter_order')
-    sub_calibration = node.Subscriber('mfli/calibration')
+    tran_high_gain = node.Transmitter('mfli/high_gain')
+    tran_low_gain = node.Transmitter('mfli/low_gain')
+    tran_drive_voltage = node.Transmitter('mfli/peak_voltage')
+    tran_freq = node.Transmitter('mfli/freq')
+    tran_filter_cutoff = node.Transmitter('mfli/filter_cutoff')
+    tran_filter_order = node.Transmitter('mfli/filter_order')
+    node.Receiver('mfli/calibration', calibration_cb)
     node.register_node()
 
     msg = Message()
-    calibration = np.complex(1, 0)
 
     print('Sending Data')
     while not kill:
         data = daq.poll(0.1, 500, 7)['dev3934']['demods']
-        packet = sub_calibration.read()
-        calibration = Message(packet[-1]).data if len(packet) > 0 else calibration
         for channel in data:
             t = [complex(t / clock_base, 0) for t in data[channel]['sample']['timestamp']]
             c = [complex(x, y) * 2 ** 1.5 * calibration for x, y in zip(data[channel]['sample']['x'], data[channel]['sample']['y'])]
@@ -46,17 +43,22 @@ def main():
             wide = np.array([t, c]).transpose() if channel == '1' else wide
 
         msg.data = drive_voltage
-        pub_drive_voltage.publish(msg)
+        tran_drive_voltage.transmit(msg)
         msg.data = freq
-        pub_freq.publish(msg)
+        tran_freq.transmit(msg)
         msg.data = filter_freq
-        pub_filter_cutoff.publish(msg)
+        tran_filter_cutoff.transmit(msg)
         msg.data = filter_order
-        pub_filter_order.publish(msg)
+        tran_filter_order.transmit(msg)
         msg.data = close
-        pub_high_gain.publish(msg)
+        tran_high_gain.transmit(msg)
         msg.data = wide
-        pub_low_gain.publish(msg)
+        tran_low_gain.transmit(msg)
+
+
+def calibration_cb(msg):
+    global calibration
+    calibration = Message(msg).data
 
 
 if __name__ == '__main__':

@@ -1,9 +1,8 @@
 import argparse
-from _tkinter import TclError
-
 import h5py
 import matplotlib.pyplot as plt
 import numpy as np
+from _tkinter import TclError
 
 directory = '../../data/'
 filename = 'data_1569437837.hdf5'

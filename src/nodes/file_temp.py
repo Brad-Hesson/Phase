@@ -1,9 +1,8 @@
 import argparse
-from _tkinter import TclError
-
 import h5py
 import matplotlib.pyplot as plt
 import numpy as np
+from _tkinter import TclError
 
 directory = '../../data/'
 filename = 'SN1_slow_ramp.hdf5'
@@ -61,9 +60,6 @@ def main(rv):
     ax_bt.plot(temp_history[:, 1], wide_history[:, 1].imag - wide_history[0, 1].imag, label='Demod Y')
     ax_bt.annotate('', xy=(25, 0), arrowprops=dict(arrowstyle='->'))
     ax_bt.legend()
-    # ax_bt.annotate("    Start", (25, 0))
-    # ax_bt.annotate("    End", (25, wide_history[-1, 1].real - wide_history[0, 1].real))
-    # ax_bt.annotate("    End", (25, wide_history[-1, 1].imag - wide_history[0, 1].imag))
 
     fig.show()
 

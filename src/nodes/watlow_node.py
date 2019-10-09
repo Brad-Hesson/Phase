@@ -28,9 +28,9 @@ def main():
 
     print('running')
     while not kill_flag:
-        recv = recv_set_setpoint.read_all()
-        if recv is not None and len(recv) >= 1:
-            instrument.write_float(2640, Message(recv[-1]).data)
+        recv = recv_set_setpoint.read()
+        if recv is not None:
+            instrument.write_float(2640, Message(recv).data)
         temp = instrument.read_float(402)
         power = instrument.read_float(2384)
         set_point = instrument.read_float(2652)

@@ -33,13 +33,14 @@ class Node(object):
         thread.start()
 
     def close(self):
-        for tran in self.transmitters:
-            tran.close()
-        for recv in self.receivers:
-            recv.close()
         self.__run = False
+        for tran in self.transmitters.copy():
+            tran.close()
+        for recv in self.receivers.copy():
+            recv.close()
         while self.__run is not None:
             pass
+        self.__nodes = dict()
 
     def Transmitter(self, channel):
         transmitter = Transmitter(channel, self)
@@ -214,8 +215,9 @@ class Receiver(object):
                 return None
 
     def close(self):
-        for sock in self.__sockets.itervalues():
+        for key, sock in self.__sockets.items():
             sock.close()
+            del self.__sockets[key]
         self.__node.receivers.remove(self)
 
     @property

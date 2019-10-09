@@ -8,7 +8,7 @@ import zmq
 
 from src.com import Message
 
-tick_rate = 0.1
+tick_rate = 0.5
 multicast_group = ('224.0.0.1', 5555)
 
 
@@ -188,7 +188,7 @@ class Receiver(object):
         addresses = self.__node.channels[self.channel] if self.channel in self.__node.channels else set()
         for address in addresses.union(self.__sockets):
             if address not in self.__sockets:
-                sock = EventSocket(zmq.SUB, self.__recv_cb)
+                sock = ZMQEventSocket(zmq.SUB, self.__recv_cb)
                 sock.setsockopt(zmq.SUBSCRIBE, self.channel)
                 sock.connect("tcp://%s:%s" % address)
                 self.__sockets[address] = sock
@@ -236,7 +236,7 @@ class NodeFlag(object):
         return self.__recv.read() is not None
 
 
-class EventSocket(object):
+class ZMQEventSocket(object):
     def __init__(self, socket_type, cb=None, **kwargs):
         self.__socket = zmq.Context.instance().socket(socket_type, **kwargs)
         self.__socket.setsockopt(zmq.RCVTIMEO, 100)
@@ -244,12 +244,11 @@ class EventSocket(object):
         self.__run = None
 
     def bind(self, *args, **kwargs):
-        val = self.__socket.bind(*args, **kwargs)
+        self.__socket.bind(*args, **kwargs)
         self.__run = True
         thread = threading.Thread(target=self.__loop)
         thread.setDaemon(True)
         thread.start()
-        return val
 
     def connect(self, *args, **kwargs):
         val = self.__socket.connect(*args, **kwargs)
@@ -281,6 +280,68 @@ class EventSocket(object):
                 pass
         self.__socket.close()
         self.__run = None
+
+
+class EventSocket(object):
+    def __init__(self, socket_type, cb=None, **kwargs):
+        self.__socket = socket.socket(socket.AF_INET, socket_type)
+        self.__socket.settimeout(0.1)
+        self.cb = cb
+        self.__run = None
+
+    def bind(self, *args, **kwargs):
+        self.__socket.bind(*args, **kwargs)
+        self.__run = True
+        thread = threading.Thread(target=self.__loop)
+        thread.setDaemon(True)
+        thread.start()
+
+    def connect(self, *args, **kwargs):
+        val = self.__socket.connect(*args, **kwargs)
+        self.__run = True
+        thread = threading.Thread(target=self.__loop)
+        thread.setDaemon(True)
+        thread.start()
+        return val
+
+    def setsockopt(self, *args, **kwargs):
+        return self.__socket.setsockopt(*args, **kwargs)
+
+    def getsockopt(self, *args, **kwargs):
+        return self.__socket.getsockopt(*args, **kwargs)
+
+    def close(self):
+        self.__run = False
+        while self.__run is not None:
+            pass
+
+    def __loop(self):
+        while self.__run and self.cb is not None:
+            try:
+                msg = self.__socket.recvfrom(1024)
+                thread = threading.Thread(target=self.cb, args=(msg,))
+                thread.setDaemon(True)
+                thread.start()
+            except zmq.Again:
+                pass
+            except socket.timeout:
+                pass
+        self.__socket.close()
+        self.__run = None
+
+
+def printer(msg):
+    print(msg)
+
+
+if __name__ == '__main__1':
+    sock = EventSocket(socket.SOCK_DGRAM, printer)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.bind(('', multicast_group[1]))
+    group = socket.inet_aton(multicast_group[0])
+    mreq = struct.pack('4sL', group, socket.INADDR_ANY)
+    sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+    sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, struct.pack('b', 2))
 
 
 if __name__ == '__main__':

@@ -29,7 +29,7 @@ def main():
     tran_filter_cutoff = node.Transmitter('mfli/filter_cutoff')
     tran_filter_order = node.Transmitter('mfli/filter_order')
     node.Receiver('mfli/calibration', calibration_cb)
-    node.register_node()
+    node.register()
 
     msg = Message()
 

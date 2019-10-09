@@ -7,7 +7,7 @@ def main():
     node = Node('temperature_ramp')
     tran_setpoint = node.Transmitter('watlow/set_setpoint')
     kill_flag = node.kill_flag()
-    node.register_node()
+    node.register()
 
     ramp_time = lambda t: [t, 1, t, 1]
     ramp_temp = lambda T: [T, T, 25, 25]

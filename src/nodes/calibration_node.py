@@ -10,7 +10,7 @@ node = Node('calibration')
 kill = node.kill_flag()
 recv_data = node.Receiver('mfli/low_gain')
 tran_calib = node.Transmitter('mfli/calibration')
-node.register_node()
+node.register()
 
 
 def t():

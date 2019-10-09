@@ -22,15 +22,24 @@ class Node(object):
         self.receivers = set()
         self.publishers = set()
         self.subscribers = set()
+        self.__run = False
+        self.__socket = None
 
-        self.__update_thread = threading.Thread(target=self.__update)
-        self.__update_thread.setDaemon(True)
-        self.__context = zmq.Context.instance()
-
+    def register(self):
         self.__init_socket()
+        self.__run = True
+        thread = threading.Thread(target=self.__loop)
+        thread.setDaemon(True)
+        thread.start()
 
-    def register_node(self):
-        self.__update_thread.start()
+    def close(self):
+        for tran in self.transmitters:
+            tran.close()
+        for recv in self.receivers:
+            recv.close()
+        self.__run = False
+        while self.__run is not None:
+            pass
 
     def Transmitter(self, channel):
         transmitter = Transmitter(channel, self)
@@ -82,8 +91,8 @@ class Node(object):
             if key[0] == name:
                 del self.__topics[key]
 
-    def __update(self):
-        while True:
+    def __loop(self):
+        while self.__run:
             now = time.time()
 
             self.__tick()
@@ -102,6 +111,9 @@ class Node(object):
 
             for receiver in self.receivers:
                 receiver.update()
+
+        self.__socket.close()
+        self.__run = None
 
     @property
     def name(self):
@@ -204,7 +216,7 @@ class Receiver(object):
     def close(self):
         for sock in self.__sockets.itervalues():
             sock.close()
-        self.__node.channels.remove(self)
+        self.__node.receivers.remove(self)
 
     @property
     def channel(self):
@@ -225,40 +237,52 @@ class NodeFlag(object):
 class EventSocket(object):
     def __init__(self, socket_type, cb=None, **kwargs):
         self.__socket = zmq.Context.instance().socket(socket_type, **kwargs)
-        self.__socket.setsockopt(zmq.RCVTIMEO, 1000)
-        self.__cb = cb
-        self.__run = True
-        self.__thread = threading.Thread(target=self.__loop)
-        self.__thread.setDaemon(True)
+        self.__socket.setsockopt(zmq.RCVTIMEO, 100)
+        self.cb = cb
+        self.__run = None
 
     def bind(self, *args, **kwargs):
         val = self.__socket.bind(*args, **kwargs)
-        self.__thread.start()
+        self.__run = True
+        thread = threading.Thread(target=self.__loop)
+        thread.setDaemon(True)
+        thread.start()
         return val
 
     def connect(self, *args, **kwargs):
         val = self.__socket.connect(*args, **kwargs)
-        self.__thread.start()
+        self.__run = True
+        thread = threading.Thread(target=self.__loop)
+        thread.setDaemon(True)
+        thread.start()
         return val
 
     def setsockopt(self, *args, **kwargs):
         return self.__socket.setsockopt(*args, **kwargs)
 
-    def close(self, *args, **kwargs):
+    def getsockopt(self, *args, **kwargs):
+        return self.__socket.getsockopt(*args, **kwargs)
+
+    def close(self):
         self.__run = False
-        return self.__socket.close(*args, **kwargs)
+        while self.__run is not None:
+            pass
 
     def __loop(self):
-        while self.__run and self.__cb is not None:
+        while self.__run and self.cb is not None:
             try:
                 msg = self.__socket.recv()
-                thread = threading.Thread(target=self.__cb, args=(msg,))
+                thread = threading.Thread(target=self.cb, args=(msg,))
                 thread.setDaemon(True)
                 thread.start()
             except zmq.Again:
                 pass
+        self.__socket.close()
+        self.__run = None
 
 
 if __name__ == '__main__':
     node = Node('iPython_Console')
-    node.register_node()
+    node.register()
+
+

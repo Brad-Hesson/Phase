@@ -48,7 +48,10 @@ def main():
     kill = node.kill_flag()
     node.Receiver('mfli/high_gain', high_gain_cb)
     node.Receiver('mfli/low_gain', low_gain_cb)
-    node.register_node()
+    node.register()
+
+    while len(close_history) * len(wide_history) == 0:
+        pass
 
     while not kill:
         try:
@@ -59,7 +62,6 @@ def main():
             line_imag_close.set_data((close_history[:, 0].real - close_history[-1, 0]) / 60., close_history[:, 1].imag * 1e6)
             line_real_wide.set_data((wide_history[:, 0].real - wide_history[-1, 0]) / 60., wide_history[:, 1].real * 1e6)
             line_imag_wide.set_data((wide_history[:, 0].real - wide_history[-1, 0]) / 60., wide_history[:, 1].imag * 1e6)
-
             fig.canvas.draw()
             fig.canvas.flush_events()
         except TclError:

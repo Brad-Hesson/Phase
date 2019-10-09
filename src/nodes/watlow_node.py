@@ -14,7 +14,7 @@ def main():
     tran_setpoint = node.Transmitter('watlow/setpoint')
     recv_set_setpoint = node.Receiver('watlow/set_setpoint')
     kill_flag = node.kill_flag()
-    node.register_node()
+    node.register()
     msg = Message()
 
     minimalmodbus.close_port_after_each_call = True

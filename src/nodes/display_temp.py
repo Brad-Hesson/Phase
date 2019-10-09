@@ -26,7 +26,7 @@ def main():
     node.Receiver('watlow/temp')
     node.Receiver('watlow/setpoint')
     kill_flag = node.kill_flag()
-    node.register_node()
+    node.register()
 
     plt.style.use('ggplot')
     fig = plt.figure()

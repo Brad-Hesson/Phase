@@ -2,7 +2,7 @@ import time
 from src.com import Node
 
 node = Node('network_info')
-node.register_node()
+node.register()
 
 time.sleep(1)
 

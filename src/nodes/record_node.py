@@ -15,7 +15,7 @@ def main():
     recv_freq = node.Receiver('mfli/freq')
     recv_temp = node.Receiver('watlow/temp')
     recv_setpoint = node.Receiver('watlow/setpoint')
-    node.register_node()
+    node.register()
 
     recv = None
     while recv is None:

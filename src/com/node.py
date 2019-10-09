@@ -191,7 +191,7 @@ class Receiver(object):
             else:
                 raise UserWarning('Receive buffer overflow for channel: '+str(self.channel))
         else:
-            self.__cb(msg)
+            self.__cb(msg.split(' ', 1)[1])
 
     def read(self):
         assert self.__cb is None

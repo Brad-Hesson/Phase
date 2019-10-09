@@ -8,7 +8,7 @@ import zmq
 
 from src.com import Message
 
-tick_rate = 0.5
+tick_rate = 1
 multicast_group = ('224.0.0.1', 5555)
 
 
@@ -59,14 +59,22 @@ class Node(object):
         return NodeFlag(recv)
 
     def __init_socket(self):
-        self.__socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.__socket = EventSocket(socket.SOCK_DGRAM, self.__parse_message)
         self.__socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.__socket.bind(('', multicast_group[1]))
         group = socket.inet_aton(multicast_group[0])
         mreq = struct.pack('4sL', group, socket.INADDR_ANY)
         self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
         self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, struct.pack('b', 2))
-        self.__socket.settimeout(tick_rate)
+
+    def __parse_message(self, (data, address)):
+        msg = Message(data)
+        self.__nodes[str(msg.name)] = time.time()
+        self.__delete_links(msg.name)
+        for channel, port in msg.channels.iteritems():
+            self.__channels[(str(msg.name), str(channel))] = (address[0], port)
+        for topic, port in msg.topics.iteritems():
+            self.__topics[(str(msg.name), str(topic))] = (address[0], port)
 
     def __tick(self):
         msg = Message()
@@ -74,15 +82,6 @@ class Node(object):
         msg.topics = {publisher.topic: publisher.port for publisher in self.publishers}
         msg.name = self.name
         self.__socket.sendto(msg.encode(), multicast_group)
-
-    def __parse_message(self, data, address, now):
-        msg = Message(data)
-        self.__nodes[str(msg.name)] = now
-        self.__delete_links(msg.name)
-        for channel, port in msg.channels.iteritems():
-            self.__channels[(str(msg.name), str(channel))] = (address[0], port)
-        for topic, port in msg.topics.iteritems():
-            self.__topics[(str(msg.name), str(topic))] = (address[0], port)
 
     def __delete_links(self, name):
         for key in self.__channels.keys():
@@ -98,20 +97,15 @@ class Node(object):
 
             self.__tick()
 
-            while True:
-                try:
-                    data, address = self.__socket.recvfrom(1024)
-                except socket.timeout:
-                    break
-                self.__parse_message(data, address, now)
-
             for name, timestamp in self.__nodes.items():
-                if now - timestamp > tick_rate * 10:
+                if now - timestamp > tick_rate * 3:
                     self.__delete_links(name)
                     del self.__nodes[name]
 
             for receiver in self.receivers:
                 receiver.update()
+
+            time.sleep(tick_rate)
 
         self.__socket.close()
         self.__run = None
@@ -303,6 +297,9 @@ class EventSocket(object):
         thread.setDaemon(True)
         thread.start()
         return val
+
+    def sendto(self, *args, **kwargs):
+        return self.__socket.sendto(*args, **kwargs)
 
     def setsockopt(self, *args, **kwargs):
         return self.__socket.setsockopt(*args, **kwargs)

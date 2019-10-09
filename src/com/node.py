@@ -2,9 +2,11 @@ import socket
 import struct
 import threading
 import time
-import zmq
-from src.com import Message
 from collections import defaultdict
+
+import zmq
+
+from src.com import Message
 
 tick_rate = 0.1
 multicast_group = ('224.0.0.1', 5555)
@@ -217,7 +219,7 @@ class NodeFlag(object):
         self.__recv = receiver
 
     def __nonzero__(self):
-        return len(self.__recv.read_all()) > 0
+        return self.__recv.read() is not None
 
 
 class EventSocket(object):

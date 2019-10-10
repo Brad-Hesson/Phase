@@ -9,7 +9,7 @@ import zmq
 from src.com import Message
 
 tick_rate = 1
-multicast_group = ('224.0.0.1', 5555)
+multicast_group = ('224.0.0.1', 5550)
 
 
 class Node(object):
@@ -65,7 +65,7 @@ class Node(object):
         group = socket.inet_aton(multicast_group[0])
         mreq = struct.pack('4sL', group, socket.INADDR_ANY)
         self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-        self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, struct.pack('b', 2))
+        self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, struct.pack('b', 1))
 
     def __parse_message(self, (data, address)):
         msg = Message(data)
@@ -98,7 +98,7 @@ class Node(object):
             self.__tick()
 
             for name, timestamp in self.__nodes.items():
-                if now - timestamp > tick_rate * 3:
+                if now - timestamp > tick_rate * 5:
                     self.__delete_links(name)
                     del self.__nodes[name]
 
@@ -122,14 +122,14 @@ class Node(object):
     @property
     def channels(self):
         channels = defaultdict(set)
-        for key, value in self.__channels.iteritems():
+        for key, value in self.__channels.items():
             channels[key[1]].add(value)
         return dict(channels)
 
     @property
     def topics(self):
         topics = defaultdict(set)
-        for key, value in self.__topics.iteritems():
+        for key, value in self.__topics.items():
             topics[key[1]].add(value)
         return dict(topics)
 
@@ -325,20 +325,6 @@ class EventSocket(object):
                 pass
         self.__socket.close()
         self.__run = None
-
-
-def printer(msg):
-    print(msg)
-
-
-if __name__ == '__main__1':
-    sock = EventSocket(socket.SOCK_DGRAM, printer)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.bind(('', multicast_group[1]))
-    group = socket.inet_aton(multicast_group[0])
-    mreq = struct.pack('4sL', group, socket.INADDR_ANY)
-    sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-    sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, struct.pack('b', 2))
 
 
 if __name__ == '__main__':

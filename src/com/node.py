@@ -9,7 +9,7 @@ import zmq
 from src.com import Message
 
 tick_rate = 1
-multicast_group = ('224.0.0.1', 5550)
+multicast_group = ('224.0.0.13', 60000)
 
 
 class Node(object):
@@ -319,8 +319,6 @@ class EventSocket(object):
                 thread = threading.Thread(target=self.cb, args=(msg,))
                 thread.setDaemon(True)
                 thread.start()
-            except zmq.Again:
-                pass
             except socket.timeout:
                 pass
         self.__socket.close()

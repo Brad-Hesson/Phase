@@ -47,14 +47,15 @@ while len(recv) == 0:
     recv = sub_setpoint.read()
 setpoint = Message(recv[-1]).data
 
-if not os.path.isfile(directory + file_name):
-    with h5py.File(directory + file_name, 'a') as f:
-        f.create_dataset('close', data=[close], compression='gzip', maxshape=(None, 2))
-        f.create_dataset('wide', data=[wide], compression='gzip', maxshape=(None, 2))
-        f.create_dataset('temp', data=[temp], compression='gzip', maxshape=(None, 2))
-        f.create_dataset('setpoint', data=[setpoint], compression='gzip', maxshape=(None, 2))
-        f.create_dataset('drive_voltage', data=drive_voltage)
-        f.create_dataset('frequency', data=frequency)
+assert not os.path.isfile(directory + file_name)
+
+with h5py.File(directory + file_name, 'a') as f:
+    f.create_dataset('close', data=[close], compression='gzip', maxshape=(None, 2))
+    f.create_dataset('wide', data=[wide], compression='gzip', maxshape=(None, 2))
+    f.create_dataset('temp', data=[temp], compression='gzip', maxshape=(None, 2))
+    f.create_dataset('setpoint', data=[setpoint], compression='gzip', maxshape=(None, 2))
+    f.create_dataset('drive_voltage', data=drive_voltage)
+    f.create_dataset('frequency', data=frequency)
 
 print('recording')
 while not kill:

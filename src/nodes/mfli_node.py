@@ -3,8 +3,8 @@ import numpy as np
 from src.com import Message, Node
 from src.mfli import apply_settings, create_api_ref
 
-drive_voltage = 7.0
-freq = 284000
+drive_voltage = 5.5
+freq = 300000
 window = 2000
 filter_freq = 100
 filter_order = 8

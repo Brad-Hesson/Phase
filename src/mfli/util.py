@@ -72,6 +72,7 @@ def apply_settings(pkv=7, freq=100000, filter_freq=1000, filter_order=8):
 
     # Data Transfer 1
     daq.setDouble('/dev3934/demods/0/rate', 1674)
+    daq.setInt('/dev3934/demods/0/enable', 1)
 
     # Signal Input 2
     daq.setInt('/dev3934/demods/1/adcselect', 9)
@@ -83,6 +84,7 @@ def apply_settings(pkv=7, freq=100000, filter_freq=1000, filter_order=8):
 
     # Data Transfer 2
     daq.setDouble('/dev3934/demods/1/rate', 1674)
+    daq.setInt('/dev3934/demods/1/enable', 1)
 
     # Reference
     daq.setDouble('/dev3934/oscs/0/freq', freq)

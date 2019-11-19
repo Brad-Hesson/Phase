@@ -6,20 +6,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 directory = '../../data/'
-filename = 'data_1569437837.hdf5'
+filename = 'SN16_cure.hdf5'
 
-default_gain = 49.5
-g_rot = (0.977795681556585-0.20956050469803128j)
+gain = 42.5
+theta = -32.0
 
 
 def main(rv):
     with h5py.File(rv.file, 'r') as f:
-        close_history = np.array(f['close'][::50000])
-        wide_history = np.array(f['wide'][::50000])
+        close_history = np.array(f['close'][::1000])
+        wide_history = np.array(f['wide'][::1000])
 
-    close_history[:, 1] *= 1e6 / default_gain ** 2 / g_rot
+    close_history[:, 1] *= 1e6 / gain ** 2 / (np.cos(theta / 180.0 * np.pi)+np.sin(theta / 180.0 * np.pi)*1j)
     close_history[:, 0] -= close_history[0, 0]
-    wide_history[:, 1] *= 1e6 / default_gain
+    wide_history[:, 1] *= 1e6 / gain ** 1
     wide_history[:, 0] -= wide_history[0, 0]
 
     index_ratio = len(wide_history) / wide_history[-1, 0].real * 60
@@ -34,7 +34,7 @@ def main(rv):
     line_polar_close = ax_polar.plot([])[0]
     ax_polar.set_aspect(1)
     line_polar_wide = ax_polar.plot([])[0]
-    radius = 3.3 / default_gain / default_gain * 1e6
+    radius = 6 / gain / gain * 1e6
     ax_polar.plot(radius * np.cos(np.linspace(0, 2*np.pi)), radius * np.sin(np.linspace(0, 2*np.pi)))
 
     ax_real = fig.add_subplot(222, title='Resistive')

@@ -6,8 +6,9 @@ from matplotlib.widgets import Slider
 
 from src.com import Message, Node
 
-default_gain = 49.5
-max_length = 500000
+gain = 42.5
+theta = -32.0
+max_length = 100000
 
 
 def main():
@@ -19,7 +20,7 @@ def main():
     line_polar_close = ax_polar.plot([])[0]
     ax_polar.set_aspect(1)
     line_polar_wide = ax_polar.plot([])[0]
-    radius = 6 / default_gain / default_gain * 1e6
+    radius = 6 / gain / gain * 1e6
     ax_polar.plot(radius * np.cos(np.linspace(0, 2*np.pi)), radius * np.sin(np.linspace(0, 2*np.pi)))
 
     slider = Slider(fig.add_axes([0.125, 0.1, 0.35, 0.03]), 'History', 1, 1000, 10, valstep=1)
@@ -47,8 +48,6 @@ def main():
     sub_low_gain = node.Subscriber('mfli/low_gain')
     node.register_node()
 
-    gain_buffer = [default_gain]
-    gain_buffer_length = 5000
     close_history = np.zeros((0, 2), dtype=np.complex)
     wide_history = np.zeros((0, 2), dtype=np.complex)
     while not kill:
@@ -68,9 +67,7 @@ def main():
             #        gain_buffer.append(c / w)
             #        gain_buffer.pop(0) if len(gain_buffer) > gain_buffer_length else None
 
-            gain = default_gain
-
-            close[1] /= (gain * gain * (0.977795681556585-0.20956050469803128j))
+            close[1] /= (gain * gain * (np.cos(theta / 180.0 * np.pi)+np.sin(theta / 180.0 * np.pi)*1j))
             wide[1] /= gain
 
             close_history = np.concatenate((close_history, [close]), axis=0)

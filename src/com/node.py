@@ -176,8 +176,3 @@ class NodeFlag(object):
 if __name__ == '__main__':
     node = Node('test')
     node.register_node()
-    kill = node.kill_flag()
-
-    while not kill:
-        print('running')
-        time.sleep(0.5)

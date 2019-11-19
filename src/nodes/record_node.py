@@ -5,7 +5,7 @@ import h5py
 from src.com import Message, Node
 
 directory = '../../data/'
-file_name = 'SN1_med_ramp.hdf5'
+file_name = 'SN15_temp.hdf5'
 
 node = Node('recorder')
 kill = node.kill_flag()

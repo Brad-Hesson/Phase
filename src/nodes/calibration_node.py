@@ -23,6 +23,7 @@ thread = threading.Thread(target=t)
 thread.start()
 run = True
 data = np.zeros((0, 2), dtype=np.complex)
+print('push enter to review')
 while run:
     for window in sub_data.read():
         data = np.concatenate((data, Message(window).data), axis=0)

@@ -6,11 +6,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 directory = '../../data/'
-filename = 'SN1_slow_ramp.hdf5'
+filename = 'SN15_temp.hdf5'
 
 start = 0
 end = -1
-step = 1000
+step = 1
 
 default_gain = 49.5
 g_rot = (0.977795681556585 - 0.20956050469803128j)

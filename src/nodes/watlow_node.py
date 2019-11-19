@@ -18,7 +18,7 @@ def main():
     msg = Message()
 
     minimalmodbus.close_port_after_each_call = True
-    instrument = minimalmodbus.Instrument('COM6', 1)  # port name, slave address (in decimal)
+    instrument = minimalmodbus.Instrument('COM4', 1)  # port name, slave address (in decimal)
     instrument.serial.baudrate = 9600   # Baud
     instrument.serial.bytesize = 8
     instrument.serial.parity = serial.PARITY_NONE

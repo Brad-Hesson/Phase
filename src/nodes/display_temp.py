@@ -5,7 +5,9 @@ import numpy as np
 
 from src.com import Node, Message
 
-max_length = 500000
+max_length = 50000
+
+gain = 42.5
 
 axis_font = 15
 title_font = 18
@@ -71,6 +73,8 @@ def main():
             while len(recv) == 0:
                 recv = sub_set.read()
             set_ = Message(recv[-1]).data
+
+            wide[1] /= gain
 
             temp_history = np.concatenate((temp_history, [temp]))
             wide_history = np.concatenate((wide_history, [wide]))
